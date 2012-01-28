@@ -13,9 +13,12 @@ beep.js
 
 ``` js
 var seaport = require('seaport');
-var ports = seaport('testing').connect(9090);
+var airport = require('airport');
 
-var beep = ports(function (remote, conn) {
+var ports = seaport('testing').connect('localhost', 9090);
+var air = airport(ports);
+
+air(function (remote, conn) {
     this.fives = function (n, cb) { cb(n * 5) }
 }).listen('beep');
 ```
@@ -24,9 +27,12 @@ connect.js
 
 ``` js
 var seaport = require('seaport');
-var ports = seaport('testing').connect(9090);
+var airport = require('airport');
 
-var up = ports.connect('beep');
+var ports = seaport('testing').connect('localhost', 9090);
+var air = airport(ports);
+
+var up = air.connect('beep');
 up(function (remote) {
     remote.fives(11, function (n) {
         console.log('fives(11) : ' + n);

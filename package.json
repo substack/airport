@@ -1,0 +1,43 @@
+{
+    "name" : "airport",
+    "description" : "role-based port management for upnode",
+    "version" : "0.0.0",
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/airport.git"
+    },
+    "main" : "index.js",
+    "keywords" : [
+        "upnode",
+        "dnode",
+        "port",
+        "allocate",
+        "hub",
+        "roles"
+    ],
+    "directories" : {
+        "lib" : ".",
+        "example" : "example",
+        "test" : "test"
+    },
+    "scripts" : {
+        "test" : "tap test/*.js"
+    },
+    "dependencies" : {
+        "dnode" : "0.9.x",
+        "upnode" : "0.1.x",
+        "seaport" : "0.3.x"
+    },
+    "devDependencies" : {
+        "tap" : "0.1.x"
+    },
+    "engines" : {
+        "node" : ">=0.4.0"
+    },
+    "license" : "MIT",
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    }
+}
