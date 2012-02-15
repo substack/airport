@@ -63,12 +63,8 @@ Airport.prototype.listen = function (role, fn) {
     var server = dnode.apply(null, this.args);
     server.use(upnode.ping);
     
-    ports.allocate(role, function (port) {
+    ports.service(role, function (port) {
         server.listen(port, fn);
-        
-        ports.up.on('down', function () {
-            ports.assume(role, port);
-        });
     });
     return server;
 };
