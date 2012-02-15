@@ -26,7 +26,7 @@
     "dependencies" : {
         "dnode" : "0.9.x",
         "upnode" : "0.1.x",
-        "seaport" : "0.3.x"
+        "seaport" : "0.5.x"
     },
     "devDependencies" : {
         "tap" : "0.1.x"

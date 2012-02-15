@@ -9,8 +9,8 @@ test('connect with upnode', function (t) {
     server.listen(port);
     
     var ports = {
-        a : seaport('staging').connect('localhost', port),
-        b : seaport('staging').connect('localhost', port),
+        a : seaport.connect('localhost', port),
+        b : seaport.connect('localhost', port),
     };
     
     var up = airport(ports.a).connect('beep');
