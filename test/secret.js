@@ -25,8 +25,9 @@ test('authenticated with secrets', function (t) {
         this.fives = function (n, cb) { cb(n * 5) }
     }).listen('beep', { secret : 'boop' });
     
+    var u;
     ports.a.get('beep', function (s) {
-        var u = upnode.connect(s[0], function (remote, conn) {
+        u = upnode.connect(s[0], function (remote, conn) {
             t.equal(typeof remote.secret, 'function');
             remote.secret('boop', function (err, res) {
                 if (err) t.fail(err)
@@ -48,5 +49,7 @@ test('authenticated with secrets', function (t) {
         
         server.close();
         beep.close();
+        
+        u.close();
     });
 });

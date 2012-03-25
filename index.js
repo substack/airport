@@ -1,11 +1,11 @@
 var upnode = require('upnode');
 var dnode = require('dnode');
 var seaport = require('seaport');
+var EventEmitter = require('events').EventEmitter;
 
 var airport = module.exports = function (ports) {
-    var self = function () {
-        var args = [].slice.call(arguments);
-        return new Airport(ports, args);
+    var self = function (cons) {
+        return new Airport(ports, cons);
     };
     
     self.connect = function () {
@@ -21,15 +21,15 @@ var airport = module.exports = function (ports) {
     return self;
 };
 
-function Airport (ports, args) {
+function Airport (ports, cons) {
     this.ports = ports;
-    this.args = args;
+    this.cons = cons;
 }
 
 Airport.prototype.connect = function (role, fn) {
     var ports = this.ports;
     var up = ports.up;
-    var args = this.args;
+    var cons = this.cons;
     
     function ondown () {
         ports.get(role, onget);
@@ -39,8 +39,21 @@ Airport.prototype.connect = function (role, fn) {
     function onget (ps) {
         up.removeListener('down', ondown);
         
-        var inst = upnode.apply(null, args);
-        res = inst.connect(ps[0].host, ps[0].port, fn);
+        var inst = upnode(cons);
+        if (ps[0].secret) {
+            res = inst.connect(ps[0], function (remote, conn) {
+                if (typeof remote.secret === 'function') {
+                    remote.secret(ps[0].secret, function (err, r) {
+                        if (err) target.emit('error', err)
+                        else conn.emit('up', r)
+                    });
+                }
+                else conn.emit('up', remote)
+            });
+        }
+        else {
+            res = inst.connect(ps[0], fn);
+        }
         
         target.close = res.close.bind(inst);
         queue.forEach(function (cb) { res(cb) });
@@ -54,6 +67,12 @@ Airport.prototype.connect = function (role, fn) {
         if (!res) queue.push(cb);
         else res(cb);
     };
+    (function () {
+        var em = new EventEmitter;
+        Object.keys(EventEmitter.prototype).forEach(function (key) {
+            target[key] = em[key].bind(em);
+        });
+    })();
     return target;
 };
 
@@ -73,19 +92,33 @@ Airport.prototype.listen = function () {
         }
     });
     
-    var role = opts.role;
-    var fn = opts.callback || function () {};
-    var ports = this.ports;
+    var server;
+    var meta = {};
+    var cons = this.cons;
     
     if (opts.secret) {
+        meta = { secret : opts.secret };
         
+        server = upnode(function (remote, conn) {
+            this.secret = function (key, cb) {
+                if (typeof cb !== 'function') return
+                else if (key !== opts.secret) cb('ACCESS DENIED')
+                else if (typeof cons === 'function') {
+                    var inst = {};
+                    var res = cons.call(inst, remote, conn);
+                    if (res !== undefined) inst = res;
+                    cb(null, inst);
+                }
+                else cb(null, cons)
+            };
+        });
     }
     else {
-        var server = upnode.apply(null, this.args);
+        server = upnode(cons);
     }
     
-    ports.service(role, function (port) {
-        server.listen(port, fn);
+    this.ports.service(opts.role, meta, function (port) {
+        server.listen(port, opts.callback);
     });
     return server;
 };
