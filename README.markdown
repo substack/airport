@@ -6,6 +6,8 @@ Role-based connections and listeners for
 using
 [seaport](https://github.com/substack/seaport).
 
+[![build status](https://secure.travis-ci.org/substack/airport.png)](http://travis-ci.org/substack/airport)
+
 example
 =======
 
