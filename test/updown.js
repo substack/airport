@@ -18,7 +18,8 @@ test('up down', function (t) {
         remote.fives(11, function (n) {
             t.equal(n, 55);
             beep.close();
-            rebeep();
+            beep._servers[0].end();
+            setTimeout(rebeep, 500);
         });
     });
     
@@ -32,7 +33,6 @@ test('up down', function (t) {
         }).listen('beep');
         
         up(function (remote) {
-console.dir(remote);
             remote.sixes(11, function (n) {
                 t.equal(n, 66);
                 beep.close();
