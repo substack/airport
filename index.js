@@ -57,11 +57,32 @@ Airport.prototype.connect = function (role, fn) {
     return target;
 };
 
-Airport.prototype.listen = function (role, fn) {
+Airport.prototype.listen = function () {
+    var opts = {};
+    [].slice.call(arguments).forEach(function (arg) {
+        if (typeof arg === 'object') {
+            Object.keys(arg).forEach(function (key) {
+                opts[key] = arg[key];
+            });
+        }
+        else if (typeof arg === 'function') {
+            opts.callback = arg;
+        }
+        else if (typeof arg === 'string') {
+            opts.role = arg;
+        }
+    });
+    
+    var role = opts.role;
+    var fn = opts.callback || function () {};
     var ports = this.ports;
     
-    var server = dnode.apply(null, this.args);
-    server.use(upnode.ping);
+    if (opts.secret) {
+        
+    }
+    else {
+        var server = upnode.apply(null, this.args);
+    }
     
     ports.service(role, function (port) {
         server.listen(port, fn);
