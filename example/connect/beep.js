@@ -1,7 +1,7 @@
 var seaport = require('seaport');
 var airport = require('../../');
 
-var ports = seaport('testing').connect('localhost', 9090);
+var ports = seaport.connect('localhost', 9090);
 var air = airport(ports);
 
 air(function (remote, conn) {

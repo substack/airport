@@ -79,11 +79,16 @@ until a service for `role` comes online.
 
 `air.connect()` works as a shortcut for `air().connect()` just like in upnode.
 
-air(fn).listen(role)
---------------------
+air(fn).listen(role, opts={})
+-----------------------------
 
-Create a new dnode service given the dnode constructor function or object `fn`
+Create a new upnode service given the dnode constructor function or object `fn`
 for the given `role`.
+
+If you specify a secret phrase in `opts.secret`, that phrase will be put in the
+seaport metadata for your service and clients that `.connect()` will need to
+authenticate with the secret phrase. This is performed automatically with
+`air.connect()`.
 
 install
 =======
