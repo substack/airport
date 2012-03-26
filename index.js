@@ -2,6 +2,7 @@ var upnode = require('upnode');
 var dnode = require('dnode');
 var seaport = require('seaport');
 var EventEmitter = require('events').EventEmitter;
+var pick = require('deck').pick;
 
 var airport = module.exports = function (ports) {
     var self = function (cons) {
@@ -39,7 +40,7 @@ Airport.prototype.connect = function (role, fn) {
     function onget (ps) {
         up.removeListener('down', ondown);
         
-        var s = ps[0];
+        var s = pick(ps);
         res = connector(s, function f (s_) {
             res = connector(s_, f);
         });
@@ -79,7 +80,7 @@ Airport.prototype.connect = function (role, fn) {
             
             ports.get(role, function (ps) {
                 pending = false;
-                var s = ps[0];
+                var s = pick(ps);
                 if (s.port !== service.port || s.host !== serivce.host
                 || s.secret !== service.secret) {
                     c.close();
