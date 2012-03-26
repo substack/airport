@@ -19,7 +19,7 @@ test('up down', function (t) {
             t.equal(n, 55);
             beep.close();
             beep._servers[0].end();
-            setTimeout(rebeep, 500);
+            setTimeout(rebeep, 50);
         });
     });
     
@@ -28,14 +28,17 @@ test('up down', function (t) {
     }).listen('beep');
     
     function rebeep () {
+console.log('rebeep');
         beep = airport(ports.b)(function (remote, conn) {
             this.sixes = function (n, cb) { cb(n * 6) }
         }).listen('beep');
         
         up(function (remote) {
+console.dir(remote);
             remote.sixes(11, function (n) {
                 t.equal(n, 66);
                 beep.close();
+console.log('n=' + n);
                 t.end();
             });
         });

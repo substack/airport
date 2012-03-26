@@ -39,11 +39,23 @@ Airport.prototype.connect = function (role, fn) {
     function onget (ps) {
         up.removeListener('down', ondown);
         
+        var s = ps[0];
+        res = connector(s, function f (s_) {
+            res = connector(s_, f);
+        });
+        target.close = function () { res.close() };
+        queue.forEach(function (cb) { res(cb) });
+        queue = [];
+    }
+    up.on('down', ondown);
+    
+    function connector (service, cb) {
         var inst = upnode(cons);
-        if (ps[0].secret) {
-            res = inst.connect(ps[0], function (remote, conn) {
+        var c;
+        if (service.secret) {
+            c = inst.connect(service, function (remote, conn) {
                 if (typeof remote.secret === 'function') {
-                    remote.secret(ps[0].secret, function (err, r) {
+                    remote.secret(service.secret, function (err, r) {
                         if (err) target.emit('error', err)
                         else conn.emit('up', r)
                     });
@@ -52,19 +64,35 @@ Airport.prototype.connect = function (role, fn) {
             });
         }
         else {
-            res = inst.connect(ps[0], fn);
+            c = inst.connect(service, fn);
         }
+        c.on('down', function () { c.alive = false });
+        c.on('up', function () {
+            c.alive = true;
+            queue.forEach(function (f) { c(f) });
+            queue = [];
+        });
         
-        target.close = res.close.bind(inst);
-        queue.forEach(function (cb) { res(cb) });
+        c.on('reconnect', function () {
+            ports.get(role, function (ps) {
+                var s = ps[0];
+                if (s.port !== service.port || s.host !== serivce.host
+                || s.secret !== service.secret) {
+                    c.close();
+                    cb(s);
+                }
+            });
+        });
+        
+        return c;
     }
-    up.on('down', ondown);
     
     var res;
     var queue = [];
     
     var target = function (cb) {
         if (!res) queue.push(cb);
+        else if (!res.alive) queue.push(cb);
         else res(cb);
     };
     (function () {
@@ -77,6 +105,7 @@ Airport.prototype.connect = function (role, fn) {
 };
 
 Airport.prototype.listen = function () {
+    var self = this;
     var opts = {};
     [].slice.call(arguments).forEach(function (arg) {
         if (typeof arg === 'object') {
@@ -94,7 +123,7 @@ Airport.prototype.listen = function () {
     
     var server;
     var meta = {};
-    var cons = this.cons;
+    var cons = self.cons;
     
     if (opts.secret) {
         meta = { secret : opts.secret };
@@ -117,8 +146,12 @@ Airport.prototype.listen = function () {
         server = upnode(cons);
     }
     
-    this.ports.service(opts.role, meta, function (port) {
-        server.listen(port, opts.callback);
+    self.ports.service(opts.role, meta, function (port) {
+        var s = server.listen(port, opts.callback);
+        s.on('close', function () {
+            self.ports.free(port);
+        });
     });
+    
     return server;
 };
