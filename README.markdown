@@ -1,10 +1,13 @@
 airport
 =======
 
-Role-based connections and listeners for
-[upnode](https://github.com/substack/upnode)
-using
-[seaport](https://github.com/substack/seaport).
+Provide an
+[upnode](https://github.com/substack/upnode)-style
+[dnode](https://github.com/substack/dnode) connection using service names from a
+[seaport](https://github.com/substack/seaport) server.
+
+Instead of connecting and listening on hosts and ports, you can .connect() and
+.listen() on service semvers.
 
 [![build status](https://secure.travis-ci.org/substack/airport.png)](http://travis-ci.org/substack/airport)
 
