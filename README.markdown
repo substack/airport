@@ -79,6 +79,9 @@ service that fulfills `role` with the optional upnode function `fn`.
 If no services for `role` are availble right away the request will be queued
 until a service for `role` comes online.
 
+When the connection drops and reconnection fails, seaport will be queried for a
+new host/port endpoint.
+
 `air.connect()` works as a shortcut for `air().connect()` just like in upnode.
 
 air(fn).listen(role, opts={})
