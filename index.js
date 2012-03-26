@@ -5,6 +5,10 @@ var EventEmitter = require('events').EventEmitter;
 var pick = require('deck').pick;
 
 var airport = module.exports = function (ports) {
+    if (!ports || typeof ports.get !== 'function') {
+        ports = seaport.connect.apply(null, arguments);
+    }
+    
     var self = function (cons) {
         return new Airport(ports, cons);
     };

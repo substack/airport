@@ -17,11 +17,8 @@ example
 beep.js
 
 ``` js
-var seaport = require('seaport');
 var airport = require('airport');
-
-var ports = seaport('testing').connect('localhost', 9090);
-var air = airport(ports);
+var air = airport('localhost', 9090);
 
 air(function (remote, conn) {
     this.fives = function (n, cb) { cb(n * 5) }
@@ -31,33 +28,46 @@ air(function (remote, conn) {
 connect.js
 
 ``` js
-var seaport = require('seaport');
 var airport = require('airport');
-
-var ports = seaport('testing').connect('localhost', 9090);
-var air = airport(ports);
+var air = airport('localhost', 9090);
 
 var up = air.connect('beep');
-up(function (remote) {
-    remote.fives(11, function (n) {
-        console.log('fives(11) : ' + n);
+
+setInterval(function () {
+    up(function (remote) {
+        remote.fives(11, function (n) {
+            console.log('fives(11) : ' + n);
+        });
     });
-});
+}, 1000);
 ```
 
-output
+First start a seaport server:
 
 ```
-$ seaport 9090 &
-[1] 11035
+$ seaport 9090
 seaport listening on :9090
-$ node connect.js &
-[2] 7143
-$ node beep.js &
-[3] 9040
-fives(11) : 55
-$ 
 ```
+
+then fire up the beep server:
+
+```
+$ node beep.js
+```
+
+and spin up the beep client:
+
+```
+$ node connect.js
+fives(11) : 55
+fives(11) : 55
+fives(11) : 55
+fives(11) : 55
+```
+
+If you kill the beep server and bring it up again, the connection requests get
+queued and fire when the beep server comes back up, even though it got assigned
+a different port!
 
 methods
 =======
@@ -65,13 +75,19 @@ methods
 ```
 var airport = require('airport');
 var seaport = require('seaport');
-var ports = seaport('staging').connect(...);
+var ports = seaport.connect(...);
 ```
 
 var air = airport(ports)
 ------------------------
 
 Return a new airport object `air` from a seaport port allocation object `ports`.
+
+var air = airport(...)
+----------------------
+
+Create a new seaport `ports` object from the arguments provided and use that as
+a shorthand to return `airport(ports)`.
 
 var up = air(fn).connect(role)
 ------------------------------

@@ -1,8 +1,5 @@
-var seaport = require('seaport');
 var airport = require('../../');
-
-var ports = seaport.connect('localhost', 9090);
-var air = airport(ports);
+var air = airport('localhost', 9090);
 
 var up = air.connect('beep');
 setInterval(function () {
