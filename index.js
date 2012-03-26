@@ -73,8 +73,12 @@ Airport.prototype.connect = function (role, fn) {
             queue = [];
         });
         
+        var pending = false;
         c.on('reconnect', function () {
+            if (pending) return;
+            
             ports.get(role, function (ps) {
+                pending = false;
                 var s = ps[0];
                 if (s.port !== service.port || s.host !== serivce.host
                 || s.secret !== service.secret) {
@@ -82,6 +86,7 @@ Airport.prototype.connect = function (role, fn) {
                     cb(s);
                 }
             });
+            pending = true;
         });
         
         return c;
