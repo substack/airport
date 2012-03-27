@@ -85,7 +85,7 @@ Airport.prototype.connect = function (role, fn) {
             ports.get(role, function (ps) {
                 pending = false;
                 var s = pick(ps);
-                if (s.port !== service.port || s.host !== serivce.host
+                if (s.port !== service.port || s.host !== service.host
                 || s.secret !== service.secret) {
                     c.close();
                     cb(s);
