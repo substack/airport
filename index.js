@@ -48,7 +48,10 @@ Airport.prototype.connect = function (role, fn) {
         res = connector(s, function f (s_) {
             res = connector(s_, f);
         });
-        target.close = function () { res.close() };
+        target.close = function () {
+            target.emit('close');
+            res.close();
+        };
         queue.forEach(function (cb) { res(cb) });
         queue = [];
     }
@@ -71,16 +74,23 @@ Airport.prototype.connect = function (role, fn) {
         else {
             c = inst.connect(service, fn);
         }
-        c.on('down', function () { c.alive = false });
-        c.on('up', function () {
+        
+        c.on('down', function () {
+            c.alive = false;
+            target.emit('down');
+        });
+        
+        c.on('up', function (remote) {
             c.alive = true;
             queue.forEach(function (f) { c(f) });
             queue = [];
+            target.emit('up', remote);
         });
         
         var pending = false;
         c.on('reconnect', function () {
             if (pending) return;
+            target.emit('reconnect');
             
             ports.get(role, function (ps) {
                 pending = false;
