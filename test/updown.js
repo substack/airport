@@ -3,7 +3,7 @@ var seaport = require('seaport');
 var airport = require('../');
 
 test('up down', function (t) {
-    t.plan(2);
+    t.plan(5);
     var port = Math.floor(Math.random() * 5e5 + 1e5);
     var server = seaport.createServer();
     server.listen(port);
@@ -23,6 +23,18 @@ test('up down', function (t) {
         });
     });
     
+    up.on('up', function (remote) {
+        t.ok(remote.fives || remote.sixes);
+    });
+    
+    up.on('down', function () {
+        t.ok(true);
+    });
+    
+    up.on('close', function () {
+        t.end();
+    });
+    
     var beep = airport(ports.b)(function (remote, conn) {
         this.fives = function (n, cb) { cb(n * 5) }
     }).listen('beep');
@@ -35,7 +47,7 @@ test('up down', function (t) {
         up(function (remote) {
             remote.sixes(11, function (n) {
                 t.equal(n, 66);
-                t.end();
+                up.close();
             });
         });
     }
@@ -43,7 +55,6 @@ test('up down', function (t) {
     t.on('end', function () {
         ports.a.close();
         ports.b.close();
-        up.close();
         
         server.close();
         beep.close();
