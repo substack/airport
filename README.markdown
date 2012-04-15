@@ -114,6 +114,8 @@ seaport metadata for your service and clients that `.connect()` will need to
 authenticate with the secret phrase. This is performed automatically with
 `air.connect()`.
 
+You can pass metadata directly through `opts.meta`.
+
 install
 =======
 
