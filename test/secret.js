@@ -5,7 +5,7 @@ var upnode = require('upnode');
 
 test('authenticated with secrets', function (t) {
     t.plan(3);
-    var port = Math.floor(Math.random() * 5e5 + 1e5);
+    var port = Math.floor(Math.random() * 5e4 + 1e4);
     var server = seaport.createServer();
     server.listen(port);
     

@@ -4,7 +4,7 @@ var airport = require('../');
 
 test('up down', function (t) {
     t.plan(5);
-    var port = Math.floor(Math.random() * 5e5 + 1e5);
+    var port = Math.floor(Math.random() * 5e4 + 1e4);
     var server = seaport.createServer();
     server.listen(port);
     
