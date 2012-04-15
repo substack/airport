@@ -142,11 +142,11 @@ Airport.prototype.listen = function () {
     });
     
     var server;
-    var meta = {};
+    var meta = opts.meta || {};
     var cons = self.cons;
     
     if (opts.secret) {
-        meta = { secret : opts.secret };
+        meta.secret = opts.secret;
         
         server = upnode(function (remote, conn) {
             this.secret = function (key, cb) {
