@@ -166,12 +166,18 @@ Airport.prototype.listen = function () {
         server = upnode(cons);
     }
     
+    var em = new EventEmitter;
+    
     self.ports.service(opts.role, meta, function (port) {
         var s = server.listen(port, opts.callback);
+        em.close = s.close.bind(s);
+        em._servers = server._servers;
+        
         s.on('close', function () {
             self.ports.free(port);
+            em.emit('close');
         });
     });
     
-    return server;
+    return em;
 };
