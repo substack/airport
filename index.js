@@ -1,5 +1,4 @@
 var upnode = require('upnode');
-var dnode = require('dnode');
 var seaport = require('seaport');
 var EventEmitter = require('events').EventEmitter;
 var pick = require('deck').pick;
