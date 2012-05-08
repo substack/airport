@@ -47,6 +47,7 @@ Airport.prototype.connect = function (role, fn) {
         res = connector(s, function f (s_) {
             res = connector(s_, f);
         });
+        
         target.close = function () {
             target.emit('close');
             res.close();
