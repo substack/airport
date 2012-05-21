@@ -34,9 +34,9 @@ test('turn it off and on again', function (t) {
                     ps.server.kill();
                     
                     ps.client.stdout.once('data', function (buf) {
-                        setTimeout(checkOutput, 50);
+                        setTimeout(checkOutput, 2 * 1000);
                     });
-                }, 50);
+                }, 2 * 1000);
             });
         });
         
