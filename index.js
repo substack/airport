@@ -44,7 +44,9 @@ Airport.prototype.connect = function (role, fn) {
         up.removeListener('down', ondown);
         
         var s = pick(ps);
+        if (res) res.destroy();
         res = connector(s, function f (s_) {
+            if (res) res.destroy();
             res = connector(s_, f);
         });
         
@@ -89,20 +91,28 @@ Airport.prototype.connect = function (role, fn) {
         
         var pending = false;
         c.on('reconnect', function () {
+            if (!active) return;
             if (pending) return;
             target.emit('reconnect');
             
             ports.get(role, function (ps) {
+                if (!active) return;
                 pending = false;
                 var s = pick(ps);
                 if (s.port !== service.port || s.host !== service.host
                 || s.secret !== service.secret) {
+                    if (!active) return;
                     c.close();
                     cb(s);
                 }
             });
             pending = true;
         });
+        
+        var active = true;
+        c.destroy = function () {
+            active = false;
+        };
         
         return c;
     }
