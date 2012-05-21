@@ -90,7 +90,7 @@ Airport.prototype.connect = function (role, fn) {
         });
         
         var pending = false;
-        c.on('reconnect', function () {
+        function onreconnect () {
             if (!active) return;
             if (pending) return;
             target.emit('reconnect');
@@ -107,11 +107,13 @@ Airport.prototype.connect = function (role, fn) {
                 }
             });
             pending = true;
-        });
+        }
+        c.on('reconnect', onreconnect);
         
         var active = true;
         c.destroy = function () {
             active = false;
+            c.removeListener('reconnect', onreconnect);
         };
         
         return c;
