@@ -23,29 +23,28 @@ test('hub goes down, server goes down', function (t) {
     var data = '';
     ps.client.stdout.on('data', function (buf) { data += buf });
     function checkOutput () {
-        t.same(data.split(/\r?\n/), [ 'up', 'down', 'up', 'down', '' ]);
+        t.same(data.split(/\r?\n/), [ 'up', 'down', 'up', '' ]);
     }
     
     setTimeout(function () {
-        ps.hub.kill();
+        ps.server.kill();
     }, 2 * 1000);
     
     setTimeout(function () {
-        ps.server.kill();
-    }, 3 * 1000);
+        ps.hub.kill();
+    }, 4 * 1000);
+    
+    setTimeout(function () {
+        ps.hub = sh('hub.js');
+    }, 6 * 1000);
     
     setTimeout(function () {
         ps.server = sh('server.js');
-        ps.hub = sh('hub.js');
-    }, 5 * 1000);
-    
-    setTimeout(function () {
-        ps.server.kill();
-    }, 7 * 1000);
+    }, 10 * 1000);
     
     setTimeout(function () {
         checkOutput();
-    }, 10 * 1000);
+    }, 15 * 1000);
     
     t.on('end', function () {
         ps.hub.kill();
