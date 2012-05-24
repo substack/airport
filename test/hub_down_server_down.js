@@ -28,20 +28,24 @@ test('hub goes down, server goes down', function (t) {
     
     setTimeout(function () {
         ps.hub.kill();
-    }, 2000);
+    }, 2 * 1000);
     
     setTimeout(function () {
         ps.server.kill();
-    }, 3000);
+    }, 3 * 1000);
     
     setTimeout(function () {
         ps.server = sh('server.js');
         ps.hub = sh('hub.js');
-    }, 6000);
+    }, 5 * 1000);
+    
+    setTimeout(function () {
+        ps.server.kill();
+    }, 7 * 1000);
     
     setTimeout(function () {
         checkOutput();
-    }, 7000);
+    }, 10 * 1000);
     
     t.on('end', function () {
         ps.hub.kill();
