@@ -32,7 +32,6 @@ function Airport (ports, cons) {
 
 Airport.prototype.connect = function (role, fn) {
     var ports = this.ports;
-    var up = ports.up;
     var cons = this.cons;
     
     function ondown () {
@@ -41,7 +40,7 @@ Airport.prototype.connect = function (role, fn) {
     ports.get(role, onget);
     
     function onget (ps) {
-        up.removeListener('down', ondown);
+        ports.removeListener('down', ondown);
         
         var s = pick(ps);
         if (res) res.destroy();
@@ -57,7 +56,7 @@ Airport.prototype.connect = function (role, fn) {
         queue.forEach(function (cb) { res(cb) });
         queue = [];
     }
-    up.on('down', ondown);
+    ports.on('down', ondown);
     
     function connector (service, cb) {
         var inst = upnode(cons);
@@ -95,7 +94,16 @@ Airport.prototype.connect = function (role, fn) {
             if (pending) return;
             target.emit('reconnect');
             
-            ports.get(role, function (ps) {
+            function onup () {
+                if (!active || !pending) return;
+                ports.get(role, withResults);
+            }
+            ports.once('up', onup);
+            ports.get(role, withResults);
+            
+            function withResults (ps) {
+                ports.removeListener('up', onup);
+                
                 if (!active) return;
                 pending = false;
                 var s = pick(ps);
@@ -105,7 +113,7 @@ Airport.prototype.connect = function (role, fn) {
                     c.close();
                     cb(s);
                 }
-            });
+            }
             pending = true;
         }
         c.on('reconnect', onreconnect);
