@@ -10,10 +10,8 @@
     "keywords" : [
         "upnode",
         "dnode",
-        "port",
-        "allocate",
-        "hub",
-        "roles"
+        "seaport",
+        "port"
     ],
     "directories" : {
         "lib" : ".",
