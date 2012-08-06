@@ -30,9 +30,13 @@ function Airport (ports, cons) {
     this.cons = cons;
 }
 
-Airport.prototype.connect = function (role, fn) {
+Airport.prototype.connect = function (opts, fn) {
     var ports = this.ports;
     var cons = this.cons;
+    if (typeof opts === 'string') {
+        opts = { role : opts };
+    }
+    var role = opts.role;
     
     function ondown () {
         ports.get(role, onget);
@@ -43,6 +47,7 @@ Airport.prototype.connect = function (role, fn) {
         ports.removeListener('down', ondown);
         
         var s = pick(ps);
+        
         if (res) res.destroy();
         res = connector(s, function f (s_) {
             if (res) res.destroy();
@@ -61,6 +66,10 @@ Airport.prototype.connect = function (role, fn) {
     function connector (service, cb) {
         var inst = upnode(cons);
         var c;
+        if (opts.createStream) {
+            service.createStream = opts.createStream;
+        }
+        
         if (service.secret) {
             c = inst.connect(service, function (remote, conn) {
                 if (typeof remote.secret === 'function') {
