@@ -67,7 +67,7 @@ Airport.prototype.connect = function (opts, fn) {
         var inst = upnode(cons);
         var c;
         if (opts.createStream) {
-            service.createStream = opts.createStream;
+            service.createStream = opts.createStream.bind(inst, service);
         }
         
         if (service.secret) {
