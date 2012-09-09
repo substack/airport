@@ -25,8 +25,8 @@ function runProc (fn) {
         setTimeout(function () {
             if (ref.stopped) return;
             ref.stop = runProc(fn).stop;
-        }, Math.random() * 500);
-    }, 400 + Math.random() * 500);
+        }, 1000);
+    }, 1500);
     
     var ref = {};
     ref.stop = function () {
@@ -47,22 +47,21 @@ test('reconnection race', function (t) {
         up(function (remote) {
             remote.beep(function (s) {
                 results.push(s);
-                console.log(s);
             });
         });
     }, 100);
     
-    var mark;
     setTimeout(function () {
         t.ok(results.length > 10 * 2, 'enough initial events');
-        console.log('--- mark ---');
-        mark = results.length;
+        clearInterval(iv);
+        
+        up(function (remote) {
+            remote.beep(function (s) {
+                t.ok(s);
+                results.push(s);
+            });
+        });
     }, 10 * 1000);
-    
-    setTimeout(function () {
-        t.ok(results.length > mark, 'events have come through');
-        console.log('--- stop ---');
-    }, 20 * 1000);
     
     var server = runProc(createServer);
     var hub = runProc(createHub);
@@ -70,6 +69,6 @@ test('reconnection race', function (t) {
         server.stop();
         hub.stop();
         if (up.close) up.close();
-        clearInterval(iv);
+        setTimeout(process.exit, 1000);
     });
 });
