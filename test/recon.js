@@ -20,18 +20,15 @@ function createServer () {
 
 function runProc (fn) {
     var ps = fn();
-    setTimeout(function () {
-        ps.kill();
-        setTimeout(function () {
-            if (ref.stopped) return;
-            ref.stop = runProc(fn).stop;
-        }, 1000);
-    }, 1500);
     
     var ref = {};
-    ref.stop = function () {
+    ref.restart = function (n) {
         ref.stopped = true;
-        ps.kill();
+        ps.kill('SIGKILL');
+        setTimeout(function () {
+            var ref_ = runProc(fn);
+            ref.restart = ref_.restart;
+        }, n);
     };
     return ref;
 }
@@ -46,6 +43,7 @@ test('reconnection race', function (t) {
     var iv = setInterval(function () {
         up(function (remote) {
             remote.beep(function (s) {
+                console.log('  ' + s);
                 results.push(s);
             });
         });
@@ -54,6 +52,7 @@ test('reconnection race', function (t) {
     setTimeout(function () {
         t.ok(results.length > 10 * 2, 'enough initial events');
         clearInterval(iv);
+        console.log('--- mark ---');
         
         up(function (remote) {
             remote.beep(function (s) {
@@ -63,12 +62,32 @@ test('reconnection race', function (t) {
         });
     }, 10 * 1000);
     
-    var server = runProc(createServer);
-    var hub = runProc(createHub);
+    var server = runProc(createServer, 1200);
+    var hub = runProc(createHub, 400);
+    
+    up(function (remote) {
+        setTimeout(function () {
+            hub.restart(1500)
+        }, 10);
+        
+        setTimeout(function () {
+            hub.restart(200);
+        }, 1900);
+        
+        setTimeout(function () {
+            server.restart(2500);
+        }, 100);
+        
+        setTimeout(function () {
+            server.restart(300);
+        }, 2700);
+        
+        setTimeout(function () {
+            server.restart(600);
+        }, 2300);
+    });
+    
     t.on('end', function () {
-        server.stop();
-        hub.stop();
-        if (up.close) up.close();
         setTimeout(process.exit, 1000);
     });
 });

@@ -11,6 +11,8 @@ Instead of connecting and listening on hosts and ports, you can .connect() and
 
 [![build status](https://secure.travis-ci.org/substack/airport.png)](http://travis-ci.org/substack/airport)
 
+![airport](http://substack.net/images/airport.png)
+
 example
 =======
 
