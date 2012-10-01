@@ -44,8 +44,7 @@ Airport.prototype.connect = function (opts, fn) {
     ports.get(role, onget);
     
     function onget (ps) {
-        ports.removeListener('down', ondown);
-        
+        //ports.removeListener('down', ondown);
         var s = pick(ps);
         
         if (res) res.destroy();
@@ -61,7 +60,9 @@ Airport.prototype.connect = function (opts, fn) {
         queue.forEach(function (cb) { res(cb) });
         queue = [];
     }
+    if (this._ondown) ports.removeListener('down', this._ondown);
     ports.on('down', ondown);
+    this._ondown = ondown;
     
     function connector (service, cb) {
         var inst = upnode(cons);

@@ -3,7 +3,7 @@ var seaport = require('seaport');
 var spawn = require('child_process').spawn;
 
 test('hub goes down, server goes down', function (t) {
-    t.plan(1);
+    t.plan(2);
     
     var port = Math.floor(Math.random() * 5e4 + 1e4);
     
@@ -22,29 +22,34 @@ test('hub goes down, server goes down', function (t) {
     
     var data = '';
     ps.client.stdout.on('data', function (buf) { data += buf });
+ps.client.stderr.pipe(process.stderr, { end : false });
     function checkOutput () {
-        t.same(data.split(/\r?\n/), [ 'up', 'down', 'up', '' ]);
+console.dir(data); 
+        t.same(data.split(/\r?\n/).slice(-3)[0], 'down');
+        t.same(data.split(/\r?\n/).slice(-2)[0], 'up');
     }
     
     setTimeout(function () {
-        ps.server.kill();
-    }, 2 * 1000);
-    
-    setTimeout(function () {
         ps.hub.kill();
-    }, 4 * 1000);
+        ps.server.kill();
+    }, 1500);
     
     setTimeout(function () {
         ps.hub = sh('hub.js');
-    }, 6 * 1000);
+    }, 2.5 * 1000);
+    
+    setTimeout(function () {
+        ps.hub.kill();
+        ps.hub = sh('hub.js');
+    }, 4 * 1000);
     
     setTimeout(function () {
         ps.server = sh('server.js');
-    }, 10 * 1000);
+    }, 4.5 * 1000);
     
     setTimeout(function () {
         checkOutput();
-    }, 15 * 1000);
+    }, 8 * 1000);
     
     t.on('end', function () {
         ps.hub.kill();
