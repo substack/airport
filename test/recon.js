@@ -1,6 +1,6 @@
 var test = require('tap').test;
 var spawn = require('child_process').spawn;
-var airport = require('airport');
+var airport = require('../');
 var seaport = require('seaport');
 var port = Math.floor(Math.random() * 5e4 + 1e4);
 

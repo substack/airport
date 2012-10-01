@@ -1,4 +1,4 @@
-var airport = require('airport');
+var airport = require('../../');
 var air = airport('localhost', Number(process.argv[2]));
 var ix = 0;
 
