@@ -44,7 +44,7 @@ Airport.prototype.connect = function (opts, fn) {
     ports.get(role, onget);
     
     function onget (ps) {
-        //ports.removeListener('down', ondown);
+        //ports.removeListener('disconnect', ondown);
         var s = pick(ps);
         
         if (res) res.destroy();
@@ -60,8 +60,8 @@ Airport.prototype.connect = function (opts, fn) {
         queue.forEach(function (cb) { res(cb) });
         queue = [];
     }
-    if (this._ondown) ports.removeListener('down', this._ondown);
-    ports.on('down', ondown);
+    if (this._ondown) ports.removeListener('disconnect', this._ondown);
+    ports.on('disconnect', ondown);
     this._ondown = ondown;
     
     function connector (service, cb) {
@@ -102,29 +102,29 @@ Airport.prototype.connect = function (opts, fn) {
         function onreconnect () {
             if (!active) return;
             if (pending) return;
+            pending = true;
             target.emit('reconnect');
             
             function onup () {
                 if (!active || !pending) return;
                 ports.get(role, withResults);
             }
-            ports.once('up', onup);
+            ports.once('connect', onup);
+            ports.on('register', onup);
             ports.get(role, withResults);
             
             function withResults (ps) {
-                ports.removeListener('up', onup);
+                ports.removeListener('register', onup);
                 
                 if (!active) return;
                 pending = false;
                 var s = pick(ps);
-                if (s.port !== service.port || s.host !== service.host
-                || s.secret !== service.secret) {
+                if (s.port !== service.port || s.host !== service.host || s.secret !== service.secret) {
                     if (!active) return;
                     c.close();
                     cb(s);
                 }
             }
-            pending = true;
         }
         c.on('reconnect', onreconnect);
         
@@ -197,16 +197,14 @@ Airport.prototype.listen = function () {
     }
     
     var em = new EventEmitter;
+    var s = server.listen(self.ports.register(opts.role, meta), opts.callback);
     
-    self.ports.service(opts.role, meta, function (port) {
-        var s = server.listen(port, opts.callback);
-        em.close = s.close.bind(s);
-        em._servers = server._servers;
+    em.close = s.close.bind(s);
+    em._servers = server._servers;
         
-        s.on('close', function () {
-            self.ports.free(port);
-            em.emit('close');
-        });
+    s.on('close', function () {
+        self.ports.free(self.ports);
+        em.emit('close');
     });
     
     return em;
