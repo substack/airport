@@ -1,4 +1,3 @@
-var upnode = require('upnode');
 var seaport = require('seaport');
 var EventEmitter = require('events').EventEmitter;
 var pick = require('deck').pick;
@@ -198,15 +197,14 @@ Airport.prototype.listen = function () {
     
     var em = new EventEmitter;
     
-    self.ports.service(opts.role, meta, function (port) {
-        var s = server.listen(port, opts.callback);
-        em.close = s.close.bind(s);
-        em._servers = server._servers;
-        
-        s.on('close', function () {
-            self.ports.free(port);
-            em.emit('close');
-        });
+    var port = self.ports.register(opts.role, meta)
+    var s = server.listen(port, opts.callback);
+    em.close = s.close.bind(s);
+    em._servers = server._servers;
+    
+    s.on('close', function () {
+        self.ports.free(port);
+        em.emit('close');
     });
     
     return em;
