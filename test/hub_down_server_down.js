@@ -1,9 +1,10 @@
 var test = require('tap').test;
 var seaport = require('seaport');
 var spawn = require('child_process').spawn;
+var split = require('split');
 
 test('hub goes down, server goes down', function (t) {
-    t.plan(2);
+    t.plan(3);
     
     var port = Math.floor(Math.random() * 5e4 + 1e4);
     
@@ -20,36 +21,37 @@ test('hub goes down, server goes down', function (t) {
         hub : sh('hub.js'),
     };
     
-    var data = '';
-    ps.client.stdout.on('data', function (buf) { data += buf });
-ps.client.stderr.pipe(process.stderr, { end : false });
-    function checkOutput () {
-console.dir(data); 
-        t.same(data.split(/\r?\n/).slice(-3)[0], 'down');
-        t.same(data.split(/\r?\n/).slice(-2)[0], 'up');
-    }
-    
-    setTimeout(function () {
-        ps.hub.kill();
-        ps.server.kill();
-    }, 1500);
-    
-    setTimeout(function () {
-        ps.hub = sh('hub.js');
-    }, 2.5 * 1000);
-    
-    setTimeout(function () {
-        ps.hub.kill();
-        ps.hub = sh('hub.js');
-    }, 4 * 1000);
-    
-    setTimeout(function () {
-        ps.server = sh('server.js');
-    }, 4.5 * 1000);
-    
-    setTimeout(function () {
-        checkOutput();
-    }, 8 * 1000);
+    var lines = [];
+    ps.client.stdout.pipe(split()).on('data', function (buf) {
+        var line = buf.toString('utf8');
+        lines.push(line);
+        
+        if (lines.length === 1) {
+            t.equal(line, 'up');
+            ps.hub.kill();
+            ps.server.kill();
+        }
+        else if (lines.length === 2) {
+            t.equal(line, 'down');
+            ps.hub = sh('hub.js');
+            ps.hub.stdout.once('data', function () {
+                setTimeout(function () {
+                    ps.hub.kill();
+                }, 1000);
+                
+                setTimeout(function () {
+                    ps.hub = sh('hub.js');
+                }, 1500);
+                
+                setTimeout(function () {
+                    ps.server = sh('server.js');
+                }, 2000);
+            });
+        }
+        else if (lines.length === 3) {
+            t.equal(line, 'up');
+        }
+    });
     
     t.on('end', function () {
         ps.hub.kill();

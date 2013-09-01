@@ -27,7 +27,8 @@
         "seaport" : "~1.5.3"
     },
     "devDependencies" : {
-        "tap" : "~0.3.0"
+        "tap" : "~0.4.0",
+        "split" : "~0.2.10"
     },
     "engines" : {
         "node" : ">=0.6.0"
