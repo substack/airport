@@ -20,6 +20,7 @@ test('hub goes down, server goes down', function (t) {
         client : sh('client.js'),
         hub : sh('hub.js'),
     };
+    ps.hub.stderr.pipe(process.stdout);
     
     var lines = [];
     ps.client.stdout.pipe(split()).on('data', function (buf) {

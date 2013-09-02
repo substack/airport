@@ -26,133 +26,58 @@ var airport = module.exports = function (ports) {
 };
 
 function Airport (ports, cons) {
-ports.on('connect', function () { console.error('CONNECT') });
-ports.on('disconnect', function () { console.error('DISCONNECT') });
     this.ports = ports;
     this.cons = cons;
 }
 
 Airport.prototype.connect = function (opts, fn) {
-    var ports = this.ports;
-    var cons = this.cons;
+    var self = this;
+    
     if (typeof opts === 'string') {
         opts = { role : opts };
     }
     var role = opts.role;
+    var up = null;
     
-    function ondown () {
-        ports.get(role, onget);
-    }
-    ports.get(role, onget);
-    
-    function onget (ps) {
-        //ports.removeListener('down', ondown);
+    function scan () {
+        var ps = self.ports.query(role);
+        if (ps.length === 0) return setTimeout(scan, 1000);
+        var expired = false;
+        var timeout = setTimeout(function () {
+            console.error('TIMED OUT');
+            expired = true;
+            scan();
+        }, 1000);
+        
         var s = pick(ps);
-        
-        if (res) res.destroy();
-        res = connector(s, function f (s_) {
-            if (res) res.destroy();
-            res = connector(s_, f);
-        });
-        
-        target.close = function () {
-            target.emit('close');
-            res.close();
-        };
-        queue.forEach(function (cb) { res(cb) });
-        queue = [];
-    }
-    if (this._ondown) ports.removeListener('disconnect', this._ondown);
-    ports.on('disconnect', ondown);
-    this._ondown = ondown;
-    
-    function connector (service, cb) {
-        var inst = upnode(cons);
-        var c;
-        if (opts.createStream) {
-            service.createStream = opts.createStream.bind(inst, service);
-        }
-        
-        if (service.secret) {
-            c = inst.connect(service, function (remote, conn) {
-                if (typeof remote.secret === 'function') {
-                    remote.secret(service.secret, function (err, r) {
-                        if (err) target.emit('error', err)
-                        else conn.emit('up', r)
-                    });
-                }
-                else conn.emit('up', remote)
-            });
-        }
-        else {
-            c = inst.connect(service, fn);
-        }
-        
-        c.on('down', function () {
-            c.alive = false;
-            target.emit('down');
-        });
-        
-        c.on('up', function (remote) {
-            c.alive = true;
-            queue.forEach(function (f) { c(f) });
+        var u = upnode.connect(s);
+        u(function (ref) {
+            clearTimeout(timeout);
+            if (expired) return;
+            
+            queue.forEach(function (cb) { cb(ref) });
             queue = [];
-            target.emit('up', remote);
         });
-        
-        var pending = false;
-        function onreconnect () {
-            if (!active) return;
-            if (pending) return;
-            target.emit('reconnect');
-            
-            function onup () {
-                if (!active || !pending) return;
-                ports.get(role, withResults);
-            }
-            ports.once('connect', onup);
-            ports.get(role, withResults);
-            
-            function withResults (ps) {
-                ports.removeListener('connect', onup);
-                
-                if (!active) return;
-                pending = false;
-                var s = pick(ps);
-                if (s.port !== service.port || s.host !== service.host
-                || s.secret !== service.secret) {
-                    if (!active) return;
-                    c.close();
-                    cb(s);
-                }
-            }
-            pending = true;
-        }
-        c.on('reconnect', onreconnect);
-        
-        var active = true;
-        c.destroy = function () {
-            active = false;
-            c.removeListener('reconnect', onreconnect);
-        };
-        
-        return c;
+        u.on('up', function () {
+            if (expired) return;
+            up = u;
+        });
+        u.on('down', function () {
+            if (expired) return;
+            up = null;
+        });
     }
+    scan();
     
-    var res;
     var queue = [];
-    
     var target = function (cb) {
-        if (!res) queue.push(cb);
-        else if (!res.alive) queue.push(cb);
-        else res(cb);
+        if (up) up(cb)
+        else queue.push(cb)
     };
-    (function () {
-        var em = new EventEmitter;
-        Object.keys(EventEmitter.prototype).forEach(function (key) {
-            target[key] = em[key].bind(em);
-        });
-    })();
+    
+    target.close = function () {
+        if (up) up.close();
+    };
     return target;
 };
 
