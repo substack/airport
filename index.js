@@ -26,6 +26,8 @@ var airport = module.exports = function (ports) {
 };
 
 function Airport (ports, cons) {
+ports.on('connect', function () { console.error('CONNECT') });
+ports.on('disconnect', function () { console.error('DISCONNECT') });
     this.ports = ports;
     this.cons = cons;
 }
@@ -60,8 +62,8 @@ Airport.prototype.connect = function (opts, fn) {
         queue.forEach(function (cb) { res(cb) });
         queue = [];
     }
-    if (this._ondown) ports.removeListener('down', this._ondown);
-    ports.on('down', ondown);
+    if (this._ondown) ports.removeListener('disconnect', this._ondown);
+    ports.on('disconnect', ondown);
     this._ondown = ondown;
     
     function connector (service, cb) {
@@ -108,11 +110,11 @@ Airport.prototype.connect = function (opts, fn) {
                 if (!active || !pending) return;
                 ports.get(role, withResults);
             }
-            ports.once('up', onup);
+            ports.once('connect', onup);
             ports.get(role, withResults);
             
             function withResults (ps) {
-                ports.removeListener('up', onup);
+                ports.removeListener('connect', onup);
                 
                 if (!active) return;
                 pending = false;
