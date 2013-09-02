@@ -67,16 +67,17 @@ Airport.prototype.connect = function (opts, fn) {
                     if (err) return target.emit('error', err);
                     queue.forEach(function (cb) { cb(ref_) });
                     queue = [];
+                    target.emit('up', ref_);
                 });
             }
             else {
                 queue.forEach(function (cb) { cb(ref) });
                 queue = [];
+                target.emit('up', ref);
             }
         });
         u.on('up', function () {
             if (expired) return;
-            target.emit('up');
             up = u;
             clearTimeout(downTimeout);
         });
