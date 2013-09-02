@@ -7,6 +7,7 @@ var port = Math.floor(Math.random() * 5e4 + 1e4);
 function createHub () {
     return spawn(process.execPath, [
         __dirname + '/../node_modules/.bin/seaport',
+        'listen',
         port
     ]);
 }
