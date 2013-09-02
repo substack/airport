@@ -2,6 +2,7 @@ var upnode = require('upnode');
 var seaport = require('seaport');
 var EventEmitter = require('events').EventEmitter;
 var pick = require('deck').pick;
+var funstance = require('funstance');
 
 var airport = module.exports = function (ports) {
     if (!ports || typeof ports.get !== 'function') {
@@ -60,25 +61,28 @@ Airport.prototype.connect = function (opts, fn) {
         });
         u.on('up', function () {
             if (expired) return;
+            target.emit('up');
             up = u;
         });
         u.on('down', function () {
             if (expired) return;
+            target.emit('down');
             up = null;
         });
     }
     scan();
     
     var queue = [];
-    var target = function (cb) {
-        if (up) up(cb)
-        else queue.push(cb)
-    };
+    var target = new EventEmitter;
     
     target.close = function () {
         if (up) up.close();
     };
-    return target;
+    
+    return funstance(target, function (cb) {
+        if (up) up(cb)
+        else queue.push(cb)
+    });
 };
 
 Airport.prototype.listen = function () {
