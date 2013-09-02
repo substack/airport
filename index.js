@@ -62,8 +62,17 @@ Airport.prototype.connect = function (opts, fn) {
             if (expired) return;
             clearTimeout(timeout);
             
-            queue.forEach(function (cb) { cb(ref) });
-            queue = [];
+            if (s.secret && ref && typeof ref.secret === 'function') {
+                ref.secret(s.secret, function (err, ref_) {
+                    if (err) return target.emit('error', err);
+                    queue.forEach(function (cb) { cb(ref_) });
+                    queue = [];
+                });
+            }
+            else {
+                queue.forEach(function (cb) { cb(ref) });
+                queue = [];
+            }
         });
         u.on('up', function () {
             if (expired) return;
