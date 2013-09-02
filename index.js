@@ -44,13 +44,17 @@ Airport.prototype.connect = function (opts, fn) {
     self.ports.on('disconnect', function () { connected = false });
     
     function scan () {
+        if (closed) return;
         var ps = self.ports.query(role);
         if (ps.length === 0) return setTimeout(scan, 1000);
+        
         var expired = false;
         var timeout = setTimeout(function () {
             expired = true;
+            u.close();
             scan();
         }, 1000);
+        var downTimeout;
         
         var s = pick(ps);
         var u = upnode.connect(s);
@@ -65,22 +69,35 @@ Airport.prototype.connect = function (opts, fn) {
             if (expired) return;
             target.emit('up');
             up = u;
+            clearTimeout(downTimeout);
         });
         u.on('down', function () {
             if (expired) return;
             target.emit('down');
             up = null;
-            expired = true;
-            scan();
+            
+            downTimeout = setTimeout(function () {
+                expired = true;
+                u.close();
+                scan();
+            }, 1500);
+            
+            target.once('close', function () {
+                clearTimeout(downTimeout);
+            });
         });
+        target.once('close', function () { u.close() });
     }
     scan();
     
     var queue = [];
     var target = new EventEmitter;
+    var closed = false;
     
     target.close = function () {
         if (up) up.close();
+        target.emit('close');
+        closed = true;
     };
     
     return funstance(target, function (cb) {
