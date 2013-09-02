@@ -70,10 +70,8 @@ Airport.prototype.connect = function (opts, fn) {
             if (expired) return;
             target.emit('down');
             up = null;
-            if (connected === false) {
-                expired = true;
-                scan();
-            }
+            expired = true;
+            scan();
         });
     }
     scan();
