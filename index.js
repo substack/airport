@@ -65,6 +65,9 @@ Airport.prototype.connect = function (opts, fn) {
             if (s.secret && ref && typeof ref.secret === 'function') {
                 ref.secret(s.secret, function (err, ref_) {
                     if (err) return target.emit('error', err);
+                    up = function (cb) { cb(ref_) };
+                    up.close = function () { u.close() };
+                    
                     queue.forEach(function (cb) { cb(ref_) });
                     queue = [];
                     target.emit('up', ref_);
@@ -74,11 +77,11 @@ Airport.prototype.connect = function (opts, fn) {
                 queue.forEach(function (cb) { cb(ref) });
                 queue = [];
                 target.emit('up', ref);
+                up = u;
             }
         });
-        u.on('up', function () {
+        u.on('up', function (ref) {
             if (expired) return;
-            up = u;
             clearTimeout(downTimeout);
         });
         u.on('down', function () {
