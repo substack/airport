@@ -104,8 +104,12 @@ Airport.prototype.connect = function (opts, fn) {
     scan();
     
     var queue = [];
-    var target = new EventEmitter;
     var closed = false;
+    
+    var target = funstance(new EventEmitter, function (cb) {
+        if (up) up(cb)
+        else queue.push(cb)
+    });
     
     target.close = function () {
         if (up) up.close();
@@ -113,10 +117,7 @@ Airport.prototype.connect = function (opts, fn) {
         closed = true;
     };
     
-    return funstance(target, function (cb) {
-        if (up) up(cb)
-        else queue.push(cb)
-    });
+    return target;
 };
 
 Airport.prototype.listen = function () {
