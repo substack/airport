@@ -1,7 +1,7 @@
 {
     "name" : "airport",
     "description" : "role-based port management for upnode",
-    "version" : "1.0.2",
+    "version" : "1.1.0",
     "repository" : {
         "type" : "git",
         "url" : "git://github.com/substack/airport.git"
@@ -24,7 +24,7 @@
     "dependencies" : {
         "upnode" : "~0.4.3",
         "deck" : "~0.0.4",
-        "seaport" : "~1.5.3",
+        "seaport" : "~1.7.0",
         "funstance": "~0.0.2"
     },
     "devDependencies" : {
