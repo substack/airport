@@ -24,7 +24,7 @@
     "dependencies" : {
         "upnode" : "~0.4.3",
         "deck" : "~0.0.4",
-        "seaport" : "~1.7.0",
+        "seaport" : "~2.0.2",
         "funstance": "~0.0.2"
     },
     "devDependencies" : {
